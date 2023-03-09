@@ -3,16 +3,12 @@ package codetest;
 import codetest.PO.Location;
 import codetest.PO.Result;
 import codetest.PO.Route;
-import codetest.exceptions.*;
-import codetest.util.JSONLocationBuilder;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import codetest.exceptions.InvalidEnterLocationException;
+import codetest.exceptions.InvalidExitLocationException;
+import codetest.exceptions.InvalidLocationException;
+import codetest.exceptions.InvalidLocationIdException;
+import codetest.exceptions.InvalidLocationNameException;
+import codetest.exceptions.SameLocationException;
 
 /**
  * Main java class for Trip calculator
@@ -43,9 +39,11 @@ public class TripCalculator {
      * @throws InvalidLocationException
      */
     public Result tripCalculate(String startName, String endName) throws InvalidLocationException {
+    	//retrieve Location by name
         Location begin = locationManager.getByName(startName);
         Location end = locationManager.getByName(endName);
         if (begin != null && end != null) {
+        	//location found, invoke internal method to begin the calculation.
             return tripCalculate(begin, end);
         } else {
             if (begin == null) {
@@ -64,9 +62,11 @@ public class TripCalculator {
      * @throws InvalidLocationException
      */
     public Result tripCalculate(int startId, int endId) throws InvalidLocationException {
+    	//retrieve Location by ID
         Location begin = locationManager.getById(startId);
         Location end = locationManager.getById(endId);
         if (begin != null && end != null) {
+        	//location found, invoke internal method to begin the calculation.
             return tripCalculate(begin, end);
         } else {
             if (begin == null) {
@@ -85,11 +85,15 @@ public class TripCalculator {
      * @throws InvalidLocationException
      */
     protected Result tripCalculate(Location start, Location end) throws InvalidLocationException {
+    	
         if (start.getId() == end.getId()) {
+        	//if two locations are the same, throw exception
             throw new SameLocationException(start);
         } else if (!start.isEnter()) {
+            //check if it is a valid start location
             throw new InvalidEnterLocationException(start);
         } else if (!end.isExit()) {
+        	//check if it is a valid exit location
             throw new InvalidExitLocationException(end);
         } else if (start.getId() > end.getId()) {
             //always use smart to large ID to find the distance.
@@ -115,8 +119,10 @@ public class TripCalculator {
             result = tripCacheManager.getCache(start.getId(), end.getId());
         }
         if (result != null) {
+        	//data found, return the result
             return new Result().setDistance(result).setCost(Math.ceil(result) * cost);
         }
+        //data not found
         return null;
 
     }
@@ -133,10 +139,13 @@ public class TripCalculator {
      */
     protected void process(Location start, Location current, Location end, double distance) {
         if (current.getId() == end.getId()) {
+        	//exit recursive algorithm, if current location reach the end location
             return;
         }
+        //find the larger ID and then go further.
         for (Route route : current.getRoutes()) {
             if (current.getId() < route.getToId()) {
+            	//larger ID found, calculate the distance and add to the cache
                 Location temp = locationManager.getById(route.getToId());
                 double tempDistance = distance + route.getDistance();
                 tripCacheManager.addCache(start.getId(), temp.getId(), tempDistance);
