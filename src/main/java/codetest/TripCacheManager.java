@@ -6,9 +6,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.stereotype.Component;
+
 /**
  * Cache management class, it will store the distance between two locations
  */
+@Component
 public class TripCacheManager {
 	static String keyFormat = "B%04dE%04d";
 	static String keyFilter = "B%04dE";

@@ -1,6 +1,7 @@
 package codetest;
 
 import codetest.PO.Result;
+import codetest.dao.LocationManager;
 import codetest.exceptions.InvalidLocationException;
 import codetest.exceptions.InvalidLocationIdException;
 import codetest.util.JSONLocationBuilder;
@@ -23,7 +24,7 @@ public class Main {
             String json = new String(Files.readAllBytes(Path.of(ClassLoader.getSystemResource("interchanges.json").toURI())), StandardCharsets.UTF_8);
 
             TripCalculator tc = new TripCalculator();
-            tc.setLocationManager(new LocationManager(new JSONLocationBuilder(json).getLocationList()));
+            tc.setLocationDAO(new LocationManager().setLocationById(new JSONLocationBuilder(json).getLocationList()));
             tc.setTripCacheManager(new TripCacheManager());
             consoleControl(tc);
         } catch (IOException e) {

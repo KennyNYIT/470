@@ -1,14 +1,14 @@
-package codetest;
+package codetest.dao;
 
-import codetest.LocationManager;
-import codetest.PO.Location;
-import codetest.PO.Route;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import codetest.PO.Location;
+import codetest.PO.Route;
 
 class LocationManagerTest {
 
@@ -21,7 +21,7 @@ class LocationManagerTest {
         byId.put(1, l1);
         byId.put(2, l2);
 
-        LocationManager lr = new LocationManager(byId);
+        LocationManager lr = new LocationManager().setLocationById(byId);
         assertEquals(l1, lr.getByName("1st"));
         assertEquals(l1, lr.getById(1));
         assertEquals(l2, lr.getByName("2nd"));
@@ -39,7 +39,7 @@ class LocationManagerTest {
         byId.put(1, l1);
         byId.put(2, l2);
 
-        LocationManager lr = new LocationManager(byId);
+        LocationManager lr = new LocationManager().setLocationById(byId);
         assertEquals(false, lr.getById(2).isExit());
         assertEquals(true, lr.getById(1).isExit());
 

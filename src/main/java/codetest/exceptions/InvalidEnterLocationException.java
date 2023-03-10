@@ -6,7 +6,7 @@ public class InvalidEnterLocationException extends InvalidLocationException {
     Location location;
 
     public InvalidEnterLocationException(Location location) {
-        super("location cannot enter:" + location);
+        super("location cannot enter:" + location.getName());
         this.location = location;
     }
 

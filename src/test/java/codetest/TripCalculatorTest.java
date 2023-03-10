@@ -4,6 +4,7 @@ package codetest;
 import codetest.PO.Location;
 import codetest.PO.Result;
 import codetest.PO.Route;
+import codetest.dao.LocationManager;
 import codetest.exceptions.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,25 +30,25 @@ class TripCalculatorTest {
     public void normalTest() throws InvalidLocationException {
         TripCalculator tc = new TripCalculator();
         tc.setTripCacheManager(tcm);
-        tc.setLocationManager(lm);
-        Location l1 = new Location().setId(1).setLat(1).setLng(1).setName("1st").setRoutes(new Route[]{new Route().setToId(2).setDistance(6.062)});
-        Location l2 = new Location().setId(2).setLat(2).setLng(2).setName("2nd").setRoutes(new Route[]{new Route().setToId(1).setDistance(6.062),new Route().setToId(3).setDistance(3.847)});
-        Location l3 = new Location().setId(3).setLat(3).setLng(3).setName("3rd").setRoutes(new Route[]{new Route().setToId(2).setDistance(3.847)});
+        tc.setLocationDAO(lm);
+        Location l1 = new Location().setId(1).setLat(1).setLng(1).setName("1st").setRoutes(new Route[]{new Route().setToId(2).setDistance(1)});
+        Location l2 = new Location().setId(2).setLat(2).setLng(2).setName("2nd").setRoutes(new Route[]{new Route().setToId(1).setDistance(1),new Route().setToId(3).setDistance(2)});
+        Location l3 = new Location().setId(3).setLat(3).setLng(3).setName("3rd").setRoutes(new Route[]{new Route().setToId(2).setDistance(2)});
         when(lm.getById(1)).thenReturn(l1);
         when(lm.getById(2)).thenReturn(l2);
         when(lm.getById(3)).thenReturn(l3);
-        when(tcm.getCache(1,3)).thenReturn(null).thenReturn(2d);
+        when(tcm.getCache(1,3)).thenReturn(null);
         when(tcm.findFarthestCachedLocationId(1)).thenReturn(1);
         Result r = tc.tripCalculate(1,3);
-        assertEquals(2, r.getDistance());
-        assertEquals(0.25*2, r.getCost());
+        assertEquals(3, r.getDistance());
+        assertEquals(0.25*3, r.getCost());
     }
 
     @Test
     public void cacheTest() throws InvalidLocationException {
         TripCalculator tc = new TripCalculator();
         tc.setTripCacheManager(tcm);
-        tc.setLocationManager(lm);
+        tc.setLocationDAO(lm);
         Location l1 = new Location().setId(1).setLat(1).setLng(1).setName("1st").setRoutes(new Route[]{new Route().setToId(2).setDistance(2)});
         Location l2 = new Location().setId(2).setLat(2).setLng(2).setName("2nd").setRoutes(new Route[]{new Route().setToId(1).setDistance(2),new Route().setToId(3).setDistance(4)});
         Location l3 = new Location().setId(3).setLat(3).setLng(3).setName("3rd").setRoutes(new Route[]{new Route().setToId(2).setDistance(4)});
@@ -66,27 +67,28 @@ class TripCalculatorTest {
     public void SwapTest() throws InvalidLocationException {
         TripCalculator tc = new TripCalculator();
         tc.setTripCacheManager(tcm);
-        tc.setLocationManager(lm);
-        Location l1 = new Location().setId(1).setLat(1).setLng(1).setName("1st").setRoutes(new Route[]{new Route().setToId(2).setDistance(6.062)});
-        Location l2 = new Location().setId(2).setLat(2).setLng(2).setName("2nd").setRoutes(new Route[]{new Route().setToId(1).setDistance(6.062),new Route().setToId(3).setDistance(3.847)});
-        Location l3 = new Location().setId(3).setLat(3).setLng(3).setName("3rd").setRoutes(new Route[]{new Route().setToId(2).setDistance(3.847)});
+        tc.setLocationDAO(lm);
+        Location l1 = new Location().setId(1).setLat(1).setLng(1).setName("1st").setRoutes(new Route[]{new Route().setToId(2).setDistance(1)});
+        Location l2 = new Location().setId(2).setLat(2).setLng(2).setName("2nd").setRoutes(new Route[]{new Route().setToId(1).setDistance(1),new Route().setToId(3).setDistance(2)});
+        Location l3 = new Location().setId(3).setLat(3).setLng(3).setName("3rd").setRoutes(new Route[]{new Route().setToId(2).setDistance(2)});
         when(lm.getById(1)).thenReturn(l1);
         when(lm.getById(2)).thenReturn(l2);
         when(lm.getById(3)).thenReturn(l3);
-        when(tcm.getCache(1,3)).thenReturn(null).thenReturn(2d);
-        when(tcm.getCache(1,2)).thenReturn(2d);
+        when(tcm.getCache(1,3)).thenReturn(null);
+        when(tcm.getCache(1,2)).thenReturn(1d);
 
         when(tcm.findFarthestCachedLocationId(1)).thenReturn(2);
         Result r = tc.tripCalculate(3,1);
-        assertEquals(2, r.getDistance());
-        assertEquals(0.25*2, r.getCost());
+        verify(tcm).getCache(1,3);
+        assertEquals(3, r.getDistance());
+        assertEquals(0.25*3, r.getCost());
     }
 
     @Test
     public void InvalidID() throws InvalidLocationException {
         TripCalculator tc = new TripCalculator();
         tc.setTripCacheManager(tcm);
-        tc.setLocationManager(lm);
+        tc.setLocationDAO(lm);
         when(lm.getById(1)).thenReturn(null);
         InvalidLocationIdException exception = assertThrows(InvalidLocationIdException.class, () -> tc.tripCalculate(1,2));
         assertEquals(1, exception.getId());
@@ -96,7 +98,7 @@ class TripCalculatorTest {
     public void InvalidID2() throws InvalidLocationException {
         TripCalculator tc = new TripCalculator();
         tc.setTripCacheManager(tcm);
-        tc.setLocationManager(lm);
+        tc.setLocationDAO(lm);
         Location l1 = new Location().setId(1).setLat(1).setLng(1).setName("1st").setRoutes(new Route[]{new Route().setToId(2).setDistance(6.062)});
         when(lm.getById(1)).thenReturn(l1);
         when(lm.getById(2)).thenReturn(null);
@@ -108,7 +110,7 @@ class TripCalculatorTest {
     public void sameLocationException() throws InvalidLocationException {
         TripCalculator tc = new TripCalculator();
         tc.setTripCacheManager(tcm);
-        tc.setLocationManager(lm);
+        tc.setLocationDAO(lm);
         Location l1 = new Location().setId(1).setLat(1).setLng(1).setName("1st").setRoutes(new Route[]{new Route().setToId(2).setDistance(6.062)});
         when(lm.getById(1)).thenReturn(l1);
 
@@ -120,7 +122,7 @@ class TripCalculatorTest {
     public void InvalidName1() throws InvalidLocationException {
         TripCalculator tc = new TripCalculator();
         tc.setTripCacheManager(tcm);
-        tc.setLocationManager(lm);
+        tc.setLocationDAO(lm);
         Location l1 = new Location().setId(1).setLat(1).setLng(1).setName("1st").setRoutes(new Route[]{new Route().setToId(2).setDistance(6.062)});
         when(lm.getByName("1")).thenReturn(null);
         when(lm.getByName("2")).thenReturn(null);
@@ -132,7 +134,7 @@ class TripCalculatorTest {
     public void InvalidName2() throws InvalidLocationException {
         TripCalculator tc = new TripCalculator();
         tc.setTripCacheManager(tcm);
-        tc.setLocationManager(lm);
+        tc.setLocationDAO(lm);
         Location l1 = new Location().setId(1).setLat(1).setLng(1).setName("1st").setRoutes(new Route[]{new Route().setToId(2).setDistance(6.062)});
         when(lm.getByName("1")).thenReturn(l1);
         when(lm.getByName("2")).thenReturn(null);
@@ -144,7 +146,7 @@ class TripCalculatorTest {
     public void InvalidEnter() throws InvalidLocationException {
         TripCalculator tc = new TripCalculator();
         tc.setTripCacheManager(tcm);
-        tc.setLocationManager(lm);
+        tc.setLocationDAO(lm);
         Location l1 = new Location().setId(1).setEnter(false).setLat(1).setLng(1).setName("1st").setRoutes(new Route[]{new Route().setToId(2).setDistance(6.062)});
         Location l2 = new Location().setId(2).setEnter(false).setLat(2).setLng(2).setName("2nd").setRoutes(new Route[]{new Route().setToId(1).setDistance(6.062)});
         when(lm.getByName("1")).thenReturn(l1);
@@ -157,7 +159,7 @@ class TripCalculatorTest {
     public void InvalidExit() throws InvalidLocationException {
         TripCalculator tc = new TripCalculator();
         tc.setTripCacheManager(tcm);
-        tc.setLocationManager(lm);
+        tc.setLocationDAO(lm);
         Location l1 = new Location().setId(1).setLat(1).setLng(1).setName("1st").setRoutes(new Route[]{new Route().setToId(2).setDistance(6.062)});
         Location l2 = new Location().setId(2).setExit(false).setLat(2).setLng(2).setName("2nd").setRoutes(new Route[]{new Route().setToId(1).setDistance(6.062)});
         when(lm.getByName("1")).thenReturn(l1);

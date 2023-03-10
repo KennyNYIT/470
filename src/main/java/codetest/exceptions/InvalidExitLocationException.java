@@ -7,7 +7,7 @@ public class InvalidExitLocationException extends InvalidLocationException {
     Location location;
 
     public InvalidExitLocationException(Location location) {
-        super("location cannot exit:" + location);
+        super("location cannot exit:" + location.getName());
         this.location = location;
     }
 
